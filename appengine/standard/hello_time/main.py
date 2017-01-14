@@ -13,12 +13,25 @@
 # limitations under the License.
 
 import webapp2
+# Import datetime library
+import datetime
 
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
+        # Create server side data output per assignment instructions
+        # Create datetime object from system clock
+        current = datetime.datetime.now()
+
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write('Hello, World!')
+        self.response.write('Hello, World! It\'s me, Python!\n\n')
+
+    # Source cited: https://docs.python.org/2/library/datetime.html?highlight=datetime#strftime-and-strptime-behavior
+        self.response.write('Today is ')
+        self.response.write(current.strftime('%A, %B %d, %Y (in London).\n\n'))
+
+        self.response.write('The time (in London) is ')
+        self.response.write(current.strftime('%I:%M:%S %p.'))
 
 
 app = webapp2.WSGIApplication([
