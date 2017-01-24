@@ -1,4 +1,4 @@
-# Copyright 2015 Google Inc.
+# Copyright 2016 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import webapp2
 
-import os
 
-from django.core.wsgi import get_wsgi_application
+class MainPage(webapp2.RequestHandler):
+    def get(self):
+        self.response.write('Hello, Library! It\'s me, Python!')
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
 
-application = get_wsgi_application()
+app = webapp2.WSGIApplication([
+    ('/', MainPage),
+], debug=True)
