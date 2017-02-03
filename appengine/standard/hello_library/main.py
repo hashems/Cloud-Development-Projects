@@ -24,50 +24,17 @@ class Book(ndb.Model):
     isbn = ndb.StringProperty(required = True)
     genre = ndb.StringProperty(repeated = True)
     checkedIn = ndb.BooleanProperty()
-    '''
-    {
-        "title": "The Hitchhikers guide to the galaxy",
-        "author": "Douglas Adams",
-        "isbn": "0345391802" ,
-        "genre": ["sci-fi", "humor"],
-        "checkedIn": false
-    }
-    {
-        "title": "The Name of the Rose",
-        "author": "Umberto Eco",
-        "isbn": "0343215043",
-        "genre": ["mistery"],
-        "checkedIn": true
-    }
-    '''
+
 
 class Customer(ndb.Model):
     id = ndb.StringProperty()
     name = ndb.StringProperty(required = True)
     balance = ndb.FloatProperty()
     checked_out = ndb.StringProperty(repeated = True)
-    '''
-    {
-        "id": 100,
-         "name": "Arthur Dent",
-         "balance": 0.50,
-         "checked_out": ["/book/5", "/book/10"]
-    }
-    {
-        "name": "John Smith",
-        "balance": 0.0,
-        "checked_out": []
-    }
-    {
-        "name": "Gogi Pie",
-        "balance": 2.75,
-        "checked_out": []
-    }
-    '''
 
 
 class AllBooksHandler(webapp2.RequestHandler):
-    # Create a new Book
+    # Create new Book
     # POST /books
     def post(self):
         book_data = json.loads(self.request.body)
@@ -89,9 +56,11 @@ class AllBooksHandler(webapp2.RequestHandler):
 
     # Get all Books
     # GET /books
+    # Get all Books by status
+    # GET /books?checkedIn=:boolean
     def get(self):
         books = []
-
+        # Get all Books by status
         if self.request.query_string:
             query = []
             bool = self.request.GET['checkedIn']
@@ -115,7 +84,7 @@ class AllBooksHandler(webapp2.RequestHandler):
 
             self.response.write(query)
 
-
+        # Get all Books
         else:
             book_query = Book.query()
             all_books = book_query.fetch()
@@ -138,6 +107,58 @@ class AllBooksHandler(webapp2.RequestHandler):
 
 
 class BookHandler(webapp2.RequestHandler):
+    # Replace Book
+    # PUT /books/:book_id
+    def put(self, id = None):
+        if id:
+            book = ndb.Key(urlsafe = id).get()
+            book.id = id
+
+            book_data = json.loads(self.request.body)
+
+            book.title = book_data['title']
+            book.author = book_data['author']
+            book.isbn = book_data['isbn']
+            book.genre = book_data['genre']
+            book.checkedIn = book_data['checkedIn']
+            book.put()
+
+            book_dict = book.to_dict()
+            book_dict['self'] = '/books/' + book.id
+
+            self.response.write(json.dumps(book_dict))
+
+    # Update Book by id
+    # PATCH /books/:book_id
+    def patch(self, id = None):
+        if id:
+            book = ndb.Key(urlsafe = id).get()
+            book.id = id
+            book.put()
+
+            book_data = json.loads(self.request.body)
+
+            if book_data.get('title'):
+                book.title = book_data['title']
+
+            if book_data.get('author'):
+                book.author = book_data['author']
+
+            if book_data.get('isbn'):
+                book.isbn = book_data['isbn']
+
+            if book_data.get('genre'):
+                book.genre = book_data['genre']
+
+            if book_data.get('checkedIn'):
+                book.checkedIn = book_data['checkedIn']
+
+            book.put()
+            book_dict = book.to_dict()
+            book_dict['self'] = '/books/' + book.id
+
+            self.response.write(json.dumps(book_dict))
+
     # Get Book by id
     # GET /books/:book_id
     def get(self, id = None):
@@ -156,18 +177,6 @@ class BookHandler(webapp2.RequestHandler):
         if id:
             book = ndb.Key(urlsafe = id).get()
             book.key.delete()
-
-    # Update Book by id
-    # PATCH /books/:book_id
-    # ===TODO
-    def patch(self, id = None):
-        book_data = json.loads(self.request.body)
-
-        # if id:
-        #     book = ndb.Key(urlsafe = id).get()
-        #     book.id = id
-
-        self.response.write(book_data)
 
 
 class AllCustomersHandler(webapp2.RequestHandler):
@@ -214,6 +223,50 @@ class AllCustomersHandler(webapp2.RequestHandler):
 
 
 class CustomerHandler(webapp2.RequestHandler):
+    # Replace Customer
+    # PUT /customers/:customer_id
+    def put(self, id = None):
+        if id:
+            customer = ndb.Key(urlsafe = id).get()
+            customer.id = id
+
+            customer_data = json.loads(self.request.body)
+
+            customer.name = customer_data['name']
+            customer.balance = customer_data['balance']
+            customer.checked_out = customer_data['checked_out']
+            customer.put()
+
+            customer_dict = customer.to_dict()
+            customer_dict['self'] = '/customers/' + customer.id
+
+            self.response.write(json.dumps(customer_dict))
+
+    # Update Customer by id
+    # PATCH /customers/:customer_id
+    def patch(self, id = None):
+        if id:
+            customer = ndb.Key(urlsafe = id).get()
+            customer.id = id
+            customer.put()
+
+            customer_data = json.loads(self.request.body)
+
+            if customer_data.get('name'):
+                customer.name = customer_data['name']
+
+            if customer_data.get('balance'):
+                customer.balance = customer_data['balance']
+
+            if customer_data.get('checked_out'):
+                customer.checked_out = customer_data['checked_out']
+
+            customer.put()
+            customer_dict = customer.to_dict()
+            customer_dict['self'] = '/customers/' + customer.id
+
+            self.response.write(json.dumps(customer_dict))
+
     # Get Customer by id
     # GET /customers/:customer_id
     def get(self, id = None):
@@ -233,26 +286,8 @@ class CustomerHandler(webapp2.RequestHandler):
             customer = ndb.Key(urlsafe = id).get()
             customer.key.delete()
 
-    # Replace Customer
-    # PUT /customers/:customer_id
-    # ===TODO Not updating!
-    def put(self, id = None):
-        if id:
-            customer = ndb.Key(urlsafe = id).get()
-            customer.id = id
-            customer.put()
 
-            customer_data = json.loads(self.request.body)
-
-            customer_dict = customer.to_dict()
-            customer_dict['self'] = '/customers/' + customer.id
-
-            customer_dict['name'] = customer_data['name']
-            customer_dict['balance'] = customer_data['balance']
-            customer_dict['checked_out'] = customer_data['checked_out']
-
-            self.response.write(json.dumps(customer_dict))
-
+class CheckOutHandler(webapp2.RequestHandler):
     # Check out a Book to a Customer
     # PUT /customers/:customer_id/books/:book_id
     def put(self, customer_id = None, book_id = None):
@@ -332,10 +367,10 @@ webapp2.WSGIApplication.allowed_methods = new_allowed_methods
 app = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/books', AllBooksHandler),
+    ('/books?checkedIn=(.*)', AllBooksHandler),
     ('/books/([a-zA-Z0-9\_\-]+)', BookHandler),
-    ('/books?checkedIn=(.*)', BookHandler),
     ('/customers', AllCustomersHandler),
     ('/customers/([a-zA-Z0-9\_\-]+)', CustomerHandler),
-    ('/customers/([a-zA-Z0-9\_\-]+)/books', CustomerHandler),
-    ('/customers/([a-zA-Z0-9\_\-]+)/books/([a-zA-Z0-9\_\-]+)', CustomerHandler)
+    ('/customers/([a-zA-Z0-9\_\-]+)/books', CheckOutHandler),
+    ('/customers/([a-zA-Z0-9\_\-]+)/books/([a-zA-Z0-9\_\-]+)', CheckOutHandler)
 ], debug=True)
