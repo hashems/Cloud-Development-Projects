@@ -52,8 +52,7 @@ class AllBooksHandler(webapp2.RequestHandler):
         book_dict = new_book.to_dict()
         book_dict['self'] = '/books/' + new_book.id
 
-        # if self.response.get_status() == 200:
-        #     self.response.set_status(201)
+        self.response.set_status(201)
         self.response.write(str(json.dumps(book_dict)))
 
     # Get all Books
@@ -198,6 +197,7 @@ class AllCustomersHandler(webapp2.RequestHandler):
         customer_dict = new_customer.to_dict()
         customer_dict['self'] = '/customers/' + new_customer.id
 
+        self.response.set_status(201)
         self.response.write(json.dumps(customer_dict))
 
     # Get all Customers
@@ -310,6 +310,7 @@ class CheckOutHandler(webapp2.RequestHandler):
 
             customer_dict = customer.to_dict()
             customer_dict['self'] = '/customers/' + customer_id
+            self.response.set_status(201)
             self.response.write(str(json.dumps(customer_dict)))
 
     # Get checked out Book by id
