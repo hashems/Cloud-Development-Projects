@@ -103,7 +103,22 @@ class AllBooksHandler(webapp2.RequestHandler):
     def delete(self):
         book_query = Book.query()
         all_books = book_query.fetch()
+        customer_query = Customer.query()
+        all_customers = customer_query.fetch()
+
         for book in all_books:
+            book.id = book.key.urlsafe()
+            book_dict = book.to_dict()
+            book_dict['self'] = '/books/' + book.id
+
+            # Update Customer checked out lists
+            for customer in all_customers:
+                customer.id = customer.key.urlsafe()
+
+                if book_dict['self'] in customer.checked_out:
+                    customer.checked_out.remove(book_dict['self'])
+                    customer.put()
+
             book.key.delete()
 
 
@@ -121,7 +136,23 @@ class BookHandler(webapp2.RequestHandler):
             book.author = book_data['author']
             book.isbn = book_data['isbn']
             book.genre = book_data['genre']
-            book.checkedIn = book_data['checkedIn']
+
+            # Update Customer checked_out list if status is checked in
+            if book_data['checkedIn'] == True:
+                customer_query = Customer.query()
+                all_customers = customer_query.fetch()
+
+                book_dict = book.to_dict()
+                book_dict['self'] = '/books/' + book.id
+
+                for customer in all_customers:
+                    # Reset Book status for current list
+                    if book_dict['self'] in customer.checked_out:
+                        customer.checked_out.remove(book_dict['self'])
+                        customer.put()
+
+                book.checkedIn = book_data['checkedIn']
+
             book.put()
 
             book_dict = book.to_dict()
@@ -152,6 +183,20 @@ class BookHandler(webapp2.RequestHandler):
                 book.genre = book_data['genre']
 
             if book_data.get('checkedIn'):
+                # Update Customer checked_out list if status is checked in
+                if book_data.get('checkedIn') == True:
+                    customer_query = Customer.query()
+                    all_customers = customer_query.fetch()
+
+                    book_dict = book.to_dict()
+                    book_dict['self'] = '/books/' + book.id
+
+                    for customer in all_customers:
+                        # Reset Book status for current list
+                        if book_dict['self'] in customer.checked_out:
+                            customer.checked_out.remove(book_dict['self'])
+                            customer.put()
+
                 book.checkedIn = book_data['checkedIn']
 
             book.put()
@@ -220,7 +265,20 @@ class AllCustomersHandler(webapp2.RequestHandler):
     def delete(self):
         customer_query = Customer.query()
         all_customers = customer_query.fetch()
+        book_query = Book.query()
+        all_books = book_query.fetch()
+
         for customer in all_customers:
+            # Update Book status
+            for book in all_books:
+                book.id = book.key.urlsafe()
+                book_dict = book.to_dict()
+                book_dict['self'] = '/books/' + book.id
+
+                if book_dict['self'] in customer.checked_out:
+                    book.checkedIn = True
+                    book.put()
+
             customer.key.delete()
 
 
@@ -238,6 +296,19 @@ class CustomerHandler(webapp2.RequestHandler):
             customer.balance = customer_data['balance']
             customer.checked_out = customer_data['checked_out']
             customer.put()
+
+            # Update Book status
+            # Update Book status
+            book_query = Book.query()
+            all_books = book_query.fetch()
+            for book in all_books:
+                book.id = book.key.urlsafe()
+                book_dict = book.to_dict()
+                book_dict['self'] = '/books/' + book.id
+
+                if book_dict['self'] in customer.checked_out:
+                    book.checkedIn = False
+                    book.put()
 
             customer_dict = customer.to_dict()
             customer_dict['self'] = '/customers/' + customer.id
@@ -261,6 +332,24 @@ class CustomerHandler(webapp2.RequestHandler):
                 customer.balance = customer_data['balance']
 
             if customer_data.get('checked_out'):
+                # Update Book status
+                book_query = Book.query()
+                all_books = book_query.fetch()
+                for book in all_books:
+                    book.id = book.key.urlsafe()
+                    book_dict = book.to_dict()
+                    book_dict['self'] = '/books/' + book.id
+
+                    # Reset Book status for current list
+                    if book_dict['self'] in customer.checked_out:
+                        book.checkedIn = True
+                        book.put()
+
+                    # Set Book status for updated list
+                    if book_dict['self'] in customer_data.get('checked_out'):
+                        book.checkedIn = False
+                        book.put()
+
                 customer.checked_out = customer_data['checked_out']
 
             customer.put()
