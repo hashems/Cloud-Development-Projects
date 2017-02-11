@@ -18,6 +18,10 @@ import logging
 import json
 
 
+# Client ID: 428964381623-i1q6ovvd8biljqklkfv7gktgrspra5m9.apps.googleusercontent.com
+# Client secret: 5WkvUxxTp4aGrNUO-eSdyLHZ
+
+
 class OauthHandler(webapp2.RequestHandler):
     def get(self):
         # DEBUG Print contents of request
